@@ -1,0 +1,78 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Combination. For Combination, User will provide:
+1. code: current code snippet to be analyzed
+2. selected: the selected semantic block for debugging
+3. presentation: the abstracted presentation of this block
+4. expectation: the relevant historical expectation from context
+5. input: relevant input from the selected block
+6. output: relevant output from the selected block
+
+<code>
+{code}
+</code>
+
+<selected>
+{selected}
+</selected>
+
+<presentation>
+{presentation}
+</presentation>
+
+<expectation>
+{expectation}
+</expectation>
+
+The relevant IO includes all variables used in block execution, even if not in current method (globals or passed references ...). And unutilized criticle variables will be missed.
+
+<input>
+{input}
+</input>
+
+<output>
+{output}
+</output>
+
+Agent Task (Combination): Providing Model-executable Specification
+Analyze the given selected block. Based on the abstract presentation, extend and formalize it into a model-executable specification by leveraging the expectation, input, and output. In particular:
+
+1. Describe input/output variables
+   - Explain the semantic meaning of critical variables.
+   - List any necessary constraints (e.g., "non-null list", "positive integer") that serve as preconditions or postconditions.
+
+2. Derive the operational semantics
+   - Describe the expected behavior of this block using abstract and consistent natural language.
+   - Use the presentation and expectation to infer its behavior.
+   - At the same time, consider that the context may impose semantic expectations on this block, especially if it appears earlier in the call stack or describes logically-related behavior.
+   - If any inconsistency or ambiguity exists between the code and the expectation, rely on the expectation to guide the semantic correction.
+   - Ensure the described semantics are generalized, not tied to hardcoded values or specific examples.
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<selected>
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</selected>
+<presentation>
+signature: "Set Legal Bound",
+intent: "set lowerBound and upperBound."
+</presentation>
+<expectation>
+- "object": "upperbound", "expect": "1.0, which is the initialization of the test unit."
+</expectation>
+
+the output is:
+<format>
+"input":
+- "name": "lowerbound", "detail": "the initialized argument of lower bound from the test unit. float, <= upperbound."
+- "name": "upperbound", "detail": "the initialized argument of upper bound from the test unit. float, >= lowerbound."
+"output":
+- "name": "this.lowerbound", "detail": "the range of lower bound"
+- "name": "this.upperbound", "detail": "the range of upper bound"
+"operational_semantics":
+- "Assign the range to the current instance"
+- "Set the lowerbound"
+- "Set the upperbound"
+- "No need for validation"
+</format>

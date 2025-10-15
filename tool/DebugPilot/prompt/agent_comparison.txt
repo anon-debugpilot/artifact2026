@@ -1,0 +1,48 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Comparison. For Comparison, User will provide:
+1. oracle: the expected output values of the suspicious block
+2. outvalue: actual output values
+
+<oracle>
+{oracle}
+</oracle>
+
+<outvalue>
+{outvalue}
+</outvalue>
+
+Agent Task (Comparison): Providing the consistency match and summary
+Compare the actual output against the oracle prediction to determine consistency:
+
+1. Evaluate match status
+   - 1 (Consistent): Actual value exactly matches the oracle.
+   - 0 (Inconsistent): Values differ, or confidence is too low (use oracle.details for edge cases).
+   - Edge cases:
+      - If the oracle allows alternatives (e.g., special control values, custom exception thrown protocal), check if the actual value falls within them.
+      - Due to trace representation, True will be 1 and False will be 0
+      - Due to trace representation, some value will be shown as xxx@address. You can only use context information to inference their actual value.
+
+2. Summary
+   - If consistent, the summary should be a concise explanation to reject the suspiciousness.
+   - If inconsistent, the summary of debugging history will be used in the history section of other debugging steps. So it should include:
+      - The inconsistency of the output of this block, claiming oracle, actual value and basic explanation.
+      - How does the failure come to the current block. Explain the propagation of fault.
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<oracle>
+"oracle":
+- "name": "upperbound", "analysis": "The value is written by the input argument upperbound, which is 1.0", "expected": "1.0" 
+</oracle>
+<outvalue>
+- "name": "upperbound", "type": "float", "value": "0.0"
+</outvalue>
+
+the output is:
+<format>
+"match":
+- "name": "upperbound", "actual": "0.0", "reason": "Actual output '0.0' does not match oracle '1.0'.", "consistent": 0
+"summary": "The upperbound is written incorrectly. The expected value is 1.0 while the actual one is 0.0. The failure is probably caused by wrong assignment."
+</format>

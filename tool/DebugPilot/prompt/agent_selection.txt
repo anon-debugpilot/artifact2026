@@ -1,0 +1,46 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Selection. For Selection, User will provide:
+1. code: current code snippet to be analyzed
+2. context: context of debugging history, including prior method definitions that influence this code snippet
+3. list: the semantic block list of the code snippet
+
+<code>
+{code}
+</code>
+
+<context>
+{context}
+</context>
+
+<list>
+{list}
+</list>
+
+Agent Task (Selection): Providing Critical Block Selection
+Please analyze the given block list and complete the following:
+
+1. Analyze Fault Relevance of Each Block
+   - Based on the semantic meaning of each block and the debugging context, assess the degree of relevance between each block and the described failure.
+   - Consider factors such as:
+      - blocks that modify or return faulty values
+      - blocks that handle or propagate incorrect logic
+      - blocks that are semantically inconsistent with the overall task described in the context
+
+2. Select the Most Suspicious Critical Block
+   - Choose one semantic block that is the most suspicious based on the above analysis.
+   - This block will be selected for further inspection in the debugging process.
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<list>
+- ID: 0, Line 47-49: throw if bound illegal
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</list>
+
+the output is:
+<format>
+"analysis": "Contexts find that the upperBound is written incorrectly so the block of bound setting needs to be checked."
+"id": 1
+</format>

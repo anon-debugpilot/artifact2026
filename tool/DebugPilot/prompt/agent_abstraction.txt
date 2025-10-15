@@ -1,0 +1,43 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Abstraction. For Abstraction, User will provide:
+1. code: current code snippet to be analyzed
+2. context: context of debugging history, including prior method definitions that influence this code snippet
+3. selected: the selected semantic block for debugging
+
+<code>
+{code}
+</code>
+
+<context>
+{context}
+</context>
+
+<selected>
+{selected}
+</selected>
+
+Agent Task (Abstraction): Providing Critical Block Abstracted Presentation
+Please analyze the given selected block and complete the following:
+
+1. Abstract the Selected Block into an Abstracted Presentation
+   - The abstracted presentation should be described by a signature and an intent.
+   - signature: a concise 2–3 word title summarizing the block.
+   - intent: a short sentence describing the semantic purpose of the block.
+   - Guidelines:
+      - The description should reflect the intended correct behavior (not the actual buggy implementation).
+      - When there is a conflict between the code and its context, prefer the context to infer the correct semantic goal.
+      - The intent should be concise and general, ignoring low-level implementation issues or detail-level mistakes.
+
+2. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<selected>
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</selected>
+
+the output is:
+<format>
+"signature": "Set Legal Bound",
+"intent": "set lowerBound and upperBound."
+</format>

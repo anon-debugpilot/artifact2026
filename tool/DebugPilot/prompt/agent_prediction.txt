@@ -1,0 +1,58 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Prediction. For Prediction, User will provide:
+1. specification: the model-executable specification of the suspicious block
+2. invalue: actual input values
+3. context of debugging history, including prior method definitions that influence this code snippet
+
+<specification>
+{specification}
+</specification>
+
+<invalue>
+{invalue}
+</invalue>
+
+<context>
+{context}
+</context>
+
+Agent Task (Prediction): Providing Expected Output Values
+Based on the specification and input values, predict the expected correct output (Oracle) of the block:
+
+1. Analysis the prediction
+   - Simulating the specification, explain how the expected value was derived (e.g., calculations, constraints).
+   - Mention acceptable alternatives (if applicable).
+   - constraints of invalue:
+      - Due to trace representation, some value will be shown as xxx@address. You can only use context information to inference their actual value.
+
+2. Determine the expected values of critical variables
+   - If multiple valid outputs are possible (due to unclear method call or ...), provide the most likely one.
+   - The current code may be buggy, but the context from debugging history is reliable. Use the context to correct the current semantics when there are conflicts
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<specification>
+"input":
+- "name": "lowerbound", "detail": "the initialized argument of lower bound from the test unit. float, <= upperbound."
+- "name": "upperbound", "detail": "the initialized argument of upper bound from the test unit. float, >= lowerbound."
+"output":
+- "name": "this.lowerbound", "detail": "the range of lower bound"
+- "name": "this.upperbound", "detail": "the range of upper bound"
+"operational_semantics":
+- "Assign the range to the current instance"
+- "Set the lowerbound"
+- "Set the upperbound"
+- "No need for validation"
+</specification>
+<invalue>
+- "name": "lowerbound", "type": "float", "value": "0.0"
+- "name": "upperbound", "type": "float", "value": "1.0"
+</invalue>
+
+the output is:
+<format>
+"oracle":
+- "name": "upperbound", "analysis": "The value is written by the input argument upperbound, which is 1.0", "expected": "1.0" 
+</format>

@@ -1,0 +1,72 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Partition. For Partition, User will provide:
+1. code: current code snippet for partition
+2. context: context of debugging history, including prior method definitions that influence this code snippet
+3. test: test scenario and failure description
+4. stack: call stack trace, from test unit to current method
+
+<code>
+{code}
+</code>
+
+<context>
+{context}
+</context>
+
+<test>
+{test}
+</test>
+
+<stack>
+{stack}
+</stack>
+
+Agent Task (Partition): Providing Semantic Block Partition
+Please analyze the given code snippet and complete the following:
+
+0. Definition of legal semantic block (Important):
+   - A block must be a continuous sub-segment of the given code snippet.
+   - Blocks must maintain a sequential execution order, reflected in the execution trace as: block1 -> block2 -> ... -> block_k.
+   - Blocks must not be placed inside loops. When encountering nested loops, the block can only wrap the outermost loop.
+      - This ensures each block appears at most once in the execution trace.
+
+1. Determine Partition Boundaries and Global Semantics:
+   - Identify the start line and end line that mark the range of executable code, excluding documentation and signatures.
+   - Describe the intended semantic task of the entire code snippet, based on the debugging context and expected behavior (i.e., what is this code supposed to do if bug-free).
+
+2. Perform Semantic Block Partitioning:
+Within the identified [start_line, end_line], select breakpoints to divide the code into semantic blocks.
+   - Each block should be described by a line and a comment:
+   - line: the last line of this block 
+     - The endline is included in this block.
+     - The start line is implicitly the previous block’s line + 1, or start_line for the first block
+   - comment: a concise description of the intended correct semantics of this block.
+   - Describe what it is supposed to do, not necessarily what it currently does.
+   - When code and context disagree, trust the context to infer the correct intention.
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+Especially, when the code snippet is an impartible loop block, just return only one block
+
+one-shot example:
+for input
+<code>
+43      /**
+44       * set bound.
+45       */
+46      public setBound(double lowerBound, double upperBound) {{
+47          if (lowerBound >= upperBound) {{
+48              throw new IllegalArgumentException()
+49          }}
+50          this.lowerBound = lowerBound;
+51          this.upperBound = lowerBound;
+52      }}
+</code>
+
+the output is:
+<format>
+"start_line": 47,
+"end_line": 52,
+"description": "a method setBound to set a legal bound range",
+- "line": 49, "comment": "throw if bound illegal",
+- "line": 52, "comment": "set lowerbound and upperbound if bound legal" 
+</format>

@@ -1,0 +1,51 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Extraction. For Extraction, User will provide:
+1. selected: the selected semantic block for debugging
+2. list: the semantic block list of the code snippet
+3. context: context of debugging history, including prior method definitions that influence this code snippet
+
+<selected>
+{selected}
+</selected>
+
+<list>
+{list}
+</list>
+
+<context>
+{context}
+</context>
+
+Agent Task (Extraction): Providing relevant Historical Expectation
+Please analyze the given selected block and complete the following:
+
+1. Analyze Historical Context and Extract Relevant Expectations
+   - The context may contain prior method analysis along the call trace. These include error reports or inconsistencies that may assist in diagnosing the current snippet.
+   - From this context, extract pieces of information most relevant to the selected block, and summarize them into standardized expectations.
+   - Do not create expectations based solely on code inspection; all extracted expectations must be explicitly mentioned in context.
+   - Each expectation should include:
+   - object: the subject of the expectation, typically a variable or field name
+   - stage: the expected temporal state of the object, since the same object may have different values at different block stages.
+   - expect: the expected value or behavior, ideally including both the value and a justification based on the context
+      - If the expected value is not numeric, describe the expected property (e.g., "non-null", "true", "contains X").
+
+2. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<context>
+analysis from testBound[3:20]:
+The inconsistency is due to the unexpected value 0.0 of upperBound, which is expected to be 1.0. So the failure may locate in the method of construction where the upperbound is written incorrectly.
+</context>
+<selected>
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</selected>
+<list>
+- ID: 0, Line 47-49: throw if bound illegal
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</list>
+
+the output is:
+<format>
+- "object": "upperbound", "stage": "initialization", "expect": "1.0, which is the initialization value set in the test unit."
+</format>

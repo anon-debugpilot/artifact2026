@@ -1,0 +1,83 @@
+DebugPilot focuses on a new code snippet and calls debugging agent Localization. For Localization, User will provide:
+1. code: current code snippet to be analyzed
+2. context: context of debugging history, including the debugging summary of suspicious block
+3. selected: the selected semantic block for debugging
+4. record: the list of method calls which start at this block execution
+
+<code>
+{code}
+</code>
+
+<context>
+{context}
+</context>
+
+<selected>
+{selected}
+</selected>
+
+<record>
+{record}
+</record>
+
+Agent Task (Localization): Providing the Fault Location (local code implement or deeper method call)
+Analyze the suspicious block and the debugging summary and complete the following
+
+0. Definition of Fault Location:
+   - A fault means the current block fails to fulfill its expected semantic behavior. You must distinguish:
+   - If the fault is due to incorrect local implementation (e.g., logic, missing/extra statements, wrong arguments), set fault = 1.
+   - If the block behavior is semantically correct, but the issue lies in the deeper method call (e.g., faulty implementation in a callee method of record list), set fault = 0.
+
+1. Answer the type of this block's fault
+   - Analyze the fault type based on context summary
+   - Equals to: is there a code fault in this block itself (not in deeper calls)?
+   - a legal code fault including: wrong code written, extra intent implementation missed, code should not exist.
+   - fault = 1 if the current code logic is wrong or arguments misused; fault = 0 if behavior is reasonable but failure is inherited
+   - Special case:
+      - When dealing with inherited methods or complex call chains, you must judge based on method signatures and call stack info whether the fault should be fixed in the current block or in a deeper method.
+
+2. Provide details information
+   - If fault = 1, answer where is the faulty code line
+      - which means the selected code line need to be modified, increased or removed.
+   - If fault = 0, answer which method call in the record list need to check
+      - Among the remaining method calls, identify the one most suspicious and worth stepping into next.
+      - only answer the integer call_id without any string like method name 
+   - For both fault = 1 and 0, provide reasoning for your choice.
+
+3. Output Format:
+Return a standardized multi-line string in this format (regex-friendly, avoid using similar delimiters in comments).
+
+one-shot example:
+for input
+<code>
+43      /**
+44       * set bound.
+45       */
+46      public setBound(double lowerBound, double upperBound) {{
+47          if (lowerBound >= upperBound) {{
+48              throw new IllegalArgumentException()
+49          }}
+50          this.lowerBound = lowerBound;
+51          this.upperBound = lowerBound;
+52      }}
+</code>
+<selected>
+- ID: 1, Line 50-52: set lowerbound and upperbound if bound legal
+</selected>
+<context>
+analysis from testBound[3:20]:
+The inconsistency is due to the unexpected value 0.0 of upperBound, which is expected to be 1.0. So the failure may locate in the method of construction where the upperbound is written incorrectly.
+
+analysis from setBound[50:52]:
+The upperbound is written incorrectly. The expected value is 1.0 while the actual one is 0.0. The failure is probably caused by wrong assignment.
+</context>
+<record>
+No calls found
+</record>
+
+the output is:
+<format>
+"analysis": "Based on context summary, the assignment of upperbound is suspicious. At the same time, the failure is found at line 51, which incorrectly assign lowerBound again. The root cause locates at the current code snippet."
+"fault": 1,
+"details": 51
+</format>
